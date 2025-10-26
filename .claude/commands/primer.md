@@ -4,10 +4,7 @@ Start with reading the CLAUDE.md file if it exists to get an understanding of th
 
 Read the README.md file to get an understanding of the project.
 
-Read key files in the directories:
-- backend_agent_api
-- backend_rag_pipeline
-- frontend
+Read key files in src/
 
 Explain back to me:
 - Project structure

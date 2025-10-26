@@ -1,0 +1,108 @@
+[project]
+name = "dynamous-ai-coach"
+version = "0.1.0"
+description = "RAG AI Coach with YouTube transcript processing pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Core framework
+    "fastapi>=0.115.0",
+    "uvicorn>=0.33.0",
+    "pydantic>=2.11.4",
+    "pydantic-ai>=0.2.4",
+
+    # AI providers
+    "openai>=1.79.0",
+    "anthropic>=0.40.0",
+
+    # YouTube RAG Pipeline
+    "supadata>=1.3.1",
+    "transformers>=4.36.0",
+    "sentence-transformers>=2.2.2",
+
+    # Database
+    "supabase>=2.15.1",
+
+    # Logging
+    "structlog>=24.0.0",
+
+    # Utilities
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
+    "pytest-cov>=6.0.0",
+
+    # Type checking and linting
+    "mypy>=1.14.1",
+    "ruff>=0.8.6",
+
+    # Development tools
+    "ipython>=8.31.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = []
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "supadata.*",
+    "supabase.*",
+    "transformers",
+    "transformers.*",
+    "sentence_transformers.*",
+    "structlog.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, require external services)",
+]
+asyncio_mode = "auto"

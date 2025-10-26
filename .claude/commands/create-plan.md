@@ -7,6 +7,8 @@ argument-hint: [plan-description-or-requirements-file]
 
 You are about to create a comprehensive implementation plan based on initial requirements. This involves extensive research, analysis, and planning to produce a detailed roadmap for execution.
 
+IMPORTANT: The plan should be between 500 and 1000 lines.
+
 ## Step 1: Read and Analyze Requirements
 
 Understand the requirements or read the requirements document from: $ARGUMENTS
