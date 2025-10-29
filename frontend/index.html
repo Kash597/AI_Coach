@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Coach - Personal Coaching Assistant</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>AI Coach</h1>
+            <p class="subtitle">Your Personal AI Coaching Assistant</p>
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar for conversation history -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h2>Conversations</h2>
+                    <button class="new-chat-btn" id="newChatBtn" title="Start new conversation">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="conversations-list" id="conversationsList">
+                    <div class="conversation-item active" data-conversation-id="current">
+                        <div class="conversation-title">New Conversation</div>
+                        <div class="conversation-time">Just now</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main chat area -->
+            <div class="chat-container">
+                <div class="messages" id="messagesContainer">
+                <div class="message assistant-message welcome-message">
+                    <div class="message-content">
+                        <p>Welcome! I'm your AI Coach, trained on coaching content to help you with AI agents and AI coding assistants.</p>
+                        <p>Ask me anything about:</p>
+                        <ul>
+                            <li>Building AI agents</li>
+                            <li>Using AI coding assistants</li>
+                            <li>Best practices and strategies</li>
+                            <li>Practical implementation advice</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        placeholder="Ask me about AI agents or coding assistants..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button" disabled>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-hint">
+                    Press Enter to send (Shift+Enter for new line)
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

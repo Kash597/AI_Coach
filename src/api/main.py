@@ -14,8 +14,9 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from httpx import AsyncClient
 from pydantic import BaseModel
 from pydantic_ai import Agent
@@ -122,6 +123,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for frontend
+frontend_path = Path(__file__).resolve().parent.parent.parent / "frontend"
+if frontend_path.exists():
+    app.mount("/static", StaticFiles(directory=str(frontend_path / "static")), name="static")
+
 
 # ==============================================================================
 # Authentication
@@ -201,6 +207,13 @@ class AgentRequest(BaseModel):
     session_id: str
 
 
+class SimpleAgentRequest(BaseModel):
+    """Simplified request model for testing without authentication."""
+
+    message: str
+    conversation_id: str | None = None
+
+
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
@@ -232,6 +245,22 @@ async def stream_error_response(error_message: str, session_id: str):
 # ==============================================================================
 # API Endpoints
 # ==============================================================================
+
+
+@app.get("/")
+async def root():
+    """Serve the frontend HTML.
+
+    Returns:
+        HTML file for the chat interface.
+    """
+    frontend_path = Path(__file__).resolve().parent.parent.parent / "frontend"
+    html_file = frontend_path / "index.html"
+
+    if html_file.exists():
+        return FileResponse(html_file)
+    else:
+        return {"message": "Frontend not found. Use /docs for API documentation."}
 
 
 @app.get("/health")
@@ -477,3 +506,75 @@ async def pydantic_agent_endpoint(
             ),
             media_type="text/plain",
         )
+
+
+@app.post("/api/chat")
+async def simple_chat_endpoint(request: SimpleAgentRequest):
+    """Simplified chat endpoint without authentication (for testing/demo).
+
+    Args:
+        request: Simple chat request with message.
+
+    Returns:
+        StreamingResponse with agent output in SSE format.
+    """
+    logger.info(
+        "simple_chat_request_started",
+        message_length=len(request.message),
+    )
+
+    try:
+        agent_deps = AgentDeps(
+            embedding_client=embedding_client,
+            supabase=supabase,
+            http_client=http_client,
+        )
+
+        async def stream_response():
+            """Stream agent response in SSE format."""
+            full_response = ""
+
+            try:
+                # Run the agent with the user prompt
+                async with agent.iter(
+                    request.message,
+                    deps=agent_deps,
+                ) as run:
+                    async for node in run:
+                        if Agent.is_model_request_node(node):
+                            # Stream tokens from the model's request
+                            async with node.stream(run.ctx) as request_stream:
+                                async for event in request_stream:
+                                    if (
+                                        isinstance(event, PartStartEvent)
+                                        and event.part.part_kind == "text"
+                                    ):
+                                        # Send token event
+                                        yield f"data: {json.dumps({'type': 'token', 'content': event.part.content})}\n\n"
+                                        full_response += event.part.content
+                                    elif isinstance(event, PartDeltaEvent) and isinstance(
+                                        event.delta, TextPartDelta
+                                    ):
+                                        delta = event.delta.content_delta
+                                        # Send token event
+                                        yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
+                                        full_response += delta
+
+                logger.info(
+                    "simple_chat_completed",
+                    response_length=len(full_response),
+                )
+
+                # Send completion event
+                yield f"data: {json.dumps({'type': 'complete', 'full_response': full_response})}\n\n"
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                logger.exception("simple_chat_stream_error")
+                yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+
+        return StreamingResponse(stream_response(), media_type="text/event-stream")
+
+    except Exception as e:
+        logger.exception("simple_chat_failed")
+        raise HTTPException(status_code=500, detail=str(e))

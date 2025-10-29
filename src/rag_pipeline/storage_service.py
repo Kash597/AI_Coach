@@ -122,6 +122,10 @@ class StorageService:
 
         Raises:
             Exception: If database operation fails.
+
+        Note:
+            The Supabase Python client automatically serializes list[float] embeddings
+            to the correct format for pgvector. We pass the embedding as-is (list).
         """
         try:
             data = [
@@ -133,7 +137,7 @@ class StorageService:
                     "end_offset_ms": chunk.end_offset_ms,
                     "duration_ms": chunk.duration_ms,
                     "token_count": chunk.token_count,
-                    "embedding": chunk.embedding,
+                    "embedding": chunk.embedding,  # list[float]
                     "metadata": chunk.metadata,
                 }
                 for chunk in chunks
